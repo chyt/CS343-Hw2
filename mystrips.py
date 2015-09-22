@@ -177,7 +177,7 @@ class ParseState:
 
 class InfiniteLoopGuard(object):
     activation_count = 0
-    MAX_ACTIVATION_COUNT = 100 
+    MAX_ACTIVATION_COUNT = 100
 
     @classmethod
     def reset(cls):
@@ -375,7 +375,7 @@ def linear_solver(world):
             state.append(GroundedCondition(predicate, literals, True))
 
     goals = list(world.goals)
-    
+
     InfiniteLoopGuard.reset()
 
     return linear_solver_helper(world, state, goals, [])
@@ -412,7 +412,7 @@ def linear_solver_helper(world, state, goals, current_plan, depth = 0):
             this_level_subgoal_view = viewer.number_item_viewers
             viewer.add_item_viewer("Goal", [str(x) for x in goals], -1, range(1, len(goals)))
         else:
-            this_level_subgoal_view = viewer.number_item_viewers            
+            this_level_subgoal_view = viewer.number_item_viewers
             viewer.add_item_viewer("Preconditions", [str(x) for x in goals], -1, range(1, len(goals)))
 
     i = 0
@@ -440,6 +440,24 @@ def linear_solver_helper(world, state, goals, current_plan, depth = 0):
 
         possible_actions = sorted(get_possible_grounds(world, goal), key=lambda c: initial_state_distance(state, c.pre))
 
+        if goal.predicate == "Clear":
+            disk_to_clear = goal.literals[0]
+            viewer.display_text("---- PREDICATE IS CLEAR, DISK BEING CLEARED IS {0} ----".format(disk_to_clear))
+            for single_state in state:
+                if single_state.predicate == "On":
+                    if single_state.literals[1] == disk_to_clear:
+                        disk_on_top = single_state.literals[0]
+                        viewer.display_text("----  The disk on top of {0} is {1} ----".format(disk_to_clear, disk_on_top))
+
+            new_ordered_actions = []
+            for action in possible_actions:
+                if action.literals[0] == disk_on_top:
+                    new_ordered_actions.append(action)
+            for action in possible_actions:
+                if action.literals[0] != disk_on_top:
+                    new_ordered_actions.append(action)
+            possible_actions = new_ordered_actions
+
         # otherwise, we need to find a subgoal that will get us to the goal
         # find all the grounded actions which will satisfy the goal
         if debug:
@@ -465,16 +483,16 @@ def linear_solver_helper(world, state, goals, current_plan, depth = 0):
                 if debug:
                     viewer.add_hidden_index(action_index, this_subgoal_action_list)
                     viewer.display_text(padding + "Some preconditions not reachable by any possible action. Skipping...")
-                    action_index += 1                    
+                    action_index += 1
                     viewer.user_pause("")
                 continue
 
             # check if the action directly contradicts another goal
             if contains_contradiction(goals, action):
                 if debug:
-                    viewer.add_hidden_index(action_index, this_subgoal_action_list)                    
+                    viewer.add_hidden_index(action_index, this_subgoal_action_list)
                     viewer.display_text(padding + "Action violates another goal state. Skipping...")
-                    action_index += 1                    
+                    action_index += 1
                     viewer.user_pause("")
                 continue
 
@@ -494,14 +512,14 @@ def linear_solver_helper(world, state, goals, current_plan, depth = 0):
             # we were unable to find
             if solution is None:
                 if debug:
-                    viewer.add_hidden_index(action_index, this_subgoal_action_list)                    
+                    viewer.add_hidden_index(action_index, this_subgoal_action_list)
                     viewer.display_text(padding + "No solution found with this action. Skipping...")
                     action_index += 1
                 current_plan.pop()
                 continue
 
             if debug:
-                viewer.add_completed_index(i, this_level_subgoal_view)                
+                viewer.add_completed_index(i, this_level_subgoal_view)
                 viewer.display_text(padding + "Possible solution found!")
                 #viewer.user_pause("")
 
@@ -565,17 +583,17 @@ def linear_solver_helper(world, state, goals, current_plan, depth = 0):
                     viewer.remove_last_item_viewer(this_subgoal_action_list)
             #current_plan.pop()
             return None
-            
+
         #if we are done looking at this subgoal clean up any old action lists before moving on
         if debug:
             if not(this_subgoal_action_list == -1):
                 #there is an old action list we need to get rid of
                 viewer.remove_last_item_viewer(this_subgoal_action_list)
-                this_subgoal_action_list = -1        
+                this_subgoal_action_list = -1
         ############################
         #End while goals
         ###########################
-    
+
     #Get rid of all the planning widgets we created, unless it was the initial goal panel
     if debug:
         #check and see if we have an action list to get rid of (i.e. if we had to deal with unmet preconditions)
