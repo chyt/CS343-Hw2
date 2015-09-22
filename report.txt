@@ -1,0 +1,7 @@
+Tower of Hanoi 3+ Disk Implementation Report
+
+The agent will run without the need of any extra instructions.
+
+The problem was an infinite loop, created as the program repeatedly re-opened an old sub-problem as it tried to solve a new one. Specifically, we noticed that the issue was with clearing disks that had multiple disks on top of them, an issue that did not exist in the 2 disk scenario. With that in mind, we created an implementation that modified the order in which possible solutions were attempted, in cases where the subgoal was to clear a disk. The modified order prioritized actions that moved the disk directly on top of the subgoal disk. By optimizing the order in which actions were attempted, we were able to break out of the infinite loop and solve the puzzle.
+
+We have successfully tested our implementation for Tower of Hanoi using 2, 3, and 4 discs. As far as we know, there is not a scenario where our suggested implementation will fail.
